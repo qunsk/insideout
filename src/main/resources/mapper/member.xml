@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.InsideOut.dao.MemberDao">
+
+	<insert id="stuInsert" parameterType="student">
+		insert into student
+			(student_no, student_name, student_tel, student_email, dept_cd, staff_no)
+		<if test='dept_name=="경영학과" and dept_name != null'>
+			values (#{username}, #{student_name}, #{student_tel}, #{student_email}, '210', '2210001')
+		</if>
+		<if test='dept_name=="경제학과" and dept_name != null'>
+			values (#{username}, #{student_name}, #{student_tel}, #{student_email}, '220', '2220001')
+		</if>
+		<if test='dept_name=="컴퓨터공학과" and dept_name != null'>
+			values (#{username}, #{student_name}, #{student_tel}, #{student_email}, '130', '2130001')
+		</if>
+		<if test='dept_name=="기계과" and dept_name != null'>
+			values (#{username}, #{student_name}, #{student_tel}, #{student_email}, '140', '2140001')
+		</if>
+		<if test='dept_name=="메카트로닉스과" and dept_name != null'>
+			values (#{username}, #{student_name}, #{student_tel}, #{student_email}, '150', '2150001')
+		</if>
+	</insert>
+
+	<insert id="staInsert" parameterType="staff">
+		insert into staff
+		(staff_no, staff_name, staff_tel, staff_email, dept_cd)
+
+		<if test='dept_name=="경영학과" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '210')
+		</if>
+		<if test='dept_name=="경제학과" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '220')
+		</if>
+		<if test='dept_name=="컴퓨터공학과" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '130')
+		</if>
+		<if test='dept_name=="기계과" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '140')
+		</if>
+		<if test='dept_name=="메카트로닉스과" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '150')
+		</if>
+		<if test='dept_name=="학생상담센터" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '011')
+		</if>
+		<if test='dept_name=="학사과" and dept_name != null'>
+			values (#{username}, #{staff_name}, #{staff_tel}, #{staff_email}, '012')
+		</if>
+	</insert>
+
+	<insert id="memInsert" parameterType="member">
+		insert into member (username, password, mem_type, role)
+		<if test='mem_type == "0100"'>
+			values (#{username}, #{password}, #{mem_type},
+			"ROLE_STUDENT")
+		</if>
+		<if test='mem_type == "0200"'>
+			values (#{username}, #{password}, #{mem_type},
+			"ROLE_STAFF")
+		</if>
+	</insert>
+	
+	<select id="getUserRole" parameterType="String" resultType="String">
+		select role from member where username = #{username}
+	</select>
+
+	<select id="getName" parameterType="name" resultType="int">
+		select count(*) from 
+		<if test='mem_type == "0100"'>
+		student where student_name = #{student_name}
+		</if>
+		<if test='mem_type == "0200"'>
+		staff where staff_name = #{staff_name}
+		</if>
+	</select>
+	
+	<select id="getId" parameterType="String" resultType="String">
+		select username from member where username = #{username} 
+	</select>
+	
+	<update id="updatePass" parameterType="loginRequestDto">
+		update member set password = #{password} where username = #{username}
+	</update>
+	
+</mapper>

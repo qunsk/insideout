@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.InsideOut.dao.BoardDao">
+
+
+	<!--공지 게시판 작성 -->
+	<insert id="insertBoard" parameterType="board">
+
+		insert into
+		post(board_no, writer_id, post_title, post_content,
+		htmlPost_content,
+		post_readcount, post_dt)
+		values (#{board_no}, '학사과',
+		#{post_title},
+		#{post_content}, #{htmlPost_content}, 0, sysdate())
+	</insert>
+
+	<!-- 첨부파일 있을때 -->
+	<!-- 첨부파일 -->
+	<insert id="insertFile" parameterType="board">
+
+		insert into file(
+		real_file_nm, save_file_nm,
+		file_path, file_size)
+		values (
+		#{real_file_nm}, #{save_file_nm},
+		#{file_path},#{file_size} )
+	</insert>
+
+	<!-- 게시글 작성 -->
+
+	<insert id="insertFileboard" parameterType="board">
+		<selectKey keyProperty="file_no" order="BEFORE"
+			resultType="int">
+			select max(file_no) from file
+		</selectKey>
+
+		insert into post(board_no, writer_id, post_title, post_content,
+		htmlPost_content,
+		file_no, post_readcount, post_dt)
+		values (#{board_no},
+		'학사과', #{post_title},
+		#{post_content}, #{htmlPost_content},#{file_no},
+		0, sysdate())
+	</insert>
+
+
+	<!--공지게시글 갯수 -->
+	<select id="getNoticeCount" resultType="int">
+		select count(*) from post
+		where board_no = 400
+	</select>
+
+	<!--취업게시글 갯수 -->
+	<select id="getJobCount" resultType="int">
+		select count(*) from post
+		where board_no = 200
+	</select>
+
+	<!--QnA게시글 갯수 -->
+	<select id="getQnACount" resultType="int">
+		select count(*) from post
+		where board_no = 500
+	</select>
+
+
+	<!--공지게시판 목록 -->
+	<select id="getNoticeList" parameterType="int"
+		resultType="board">
+		select * from post where board_no = 400 order by post_no
+		desc limit
+		#{start}, 10
+	</select>
+
+	<!--취업게시판 목록 -->
+	<select id="getJobList" parameterType="int" resultType="board">
+		select *
+		from post where board_no = 200 order by post_no desc limit
+		#{start}, 10
+	</select>
+
+	<!--QnA게시판 목록 -->
+	<select id="getQnAList" parameterType="int" resultType="board">
+		select *
+		from post where board_no = 500 order by post_no desc limit
+		#{start}, 10
+	</select>
+
+	<!-- 게시판 상세보기 -->
+	<select id="getBoardCont" parameterType="int" resultType="board">
+		SELECT
+		*
+		FROM post p LEFT JOIN file f ON p.file_no = f.file_no
+		where
+		p.post_no=#{post_no}
+		UNION
+		SELECT * FROM post p RIGHT JOIN file f ON
+		p.file_no = f.file_no
+		WHERE p.file_no IS NULL and p.post_no=#{post_no}
+	</select>
+
+
+	<!-- 게시판 조회수 증가 -->
+	<update id="boardHit" parameterType="int">
+		update post set
+		post_readcount= post_readcount+1
+		where post_no=#{post_no}
+	</update>
+
+
+	<!-- 수정 새로 첨부 없을때 -->
+	<update id="boardEdit" parameterType="board">
+		UPDATE post SET post_title
+		= #{post_title},
+		post_content = #{post_content} , htmlpost_content =
+		#{htmlPost_content}
+		where post_no = #{post_no}
+	</update>
+
+	<!-- 첨부파일 있을때 -->
+	<!-- 첨부파일 -->
+	<insert id="editFile" parameterType="board">
+		insert into file(
+		real_file_nm, save_file_nm,
+		file_path, file_size)
+		values (
+		#{real_file_nm}, #{save_file_nm},
+		#{file_path},#{file_size} )
+	</insert>
+	<!-- 수정 새로 첨부 있을때 -->
+	<update id="editFileBoard" parameterType="board">
+		<selectKey keyProperty="file_no" order="BEFORE"
+			resultType="int">
+			select max(file_no) from file
+		</selectKey>
+		UPDATE post SET post_title = #{post_title}, post_content =
+		#{post_content},
+		htmlpost_content = #{htmlPost_content}, file_no=
+		#{file_no}
+		where post_no = #{post_no}
+	</update>
+
+	<!-- 게시판 삭제 -->
+	<delete id="boardDelete" parameterType="int">
+		delete from post where
+		post_no=#{post_no}
+	</delete>
+
+	<!-- 1:1 작성자 받아오기 -->
+	<select id="getStudentName" parameterType="String"
+		resultType="String">
+		select student_name from student where student_no = #{name}
+	</select>
+	<select id="getStaffName" parameterType="String"
+		resultType="String">
+		select staff_name from staff where staff_no = #{name}
+	</select>
+
+	<!-- 1:1 질문 작성 -->
+	<insert id="askWrite" parameterType="board">
+		<selectKey keyProperty="board_re_ref" order="BEFORE"
+			resultType="int">
+			select ifnull(max(board_re_ref),0)+2 from post
+		</selectKey>
+		insert into post
+		(board_no,up_post_no,writer_id,post_title,
+		post_content,post_dt, board_re_ref)
+		values
+		(300, 0,
+		#{writer_id},#{post_title},#{post_content},sysdate(),#{board_re_ref})
+	</insert>
+
+	<!-- 문의 상세 -->
+	<select id="getAskView" parameterType="int" resultType="board">
+		SELECT *
+		FROM post WHERE post_no = #{post_no}
+	</select>
+
+	<!-- 문의 답변 -->
+	<select id="getReplyAsk" parameterType="int" resultType="board">
+		SELECT *
+		FROM post WHERE post_no = #{post_no}
+	</select>
+
+	<!-- 답변글 저장 -->
+	<insert id="askViewReply" parameterType="board">
+		insert into post
+		(board_no, up_post_no, writer_id, post_title,
+		post_content, post_dt,
+		board_re_ref)
+		values
+		(300, #{post_no}, #{writer_id}, #{post_title},
+		#{post_content}, sysdate(), #{board_re_ref}-1)
+	</insert>
+
+	<!-- 문의 삭제 -->
+	<delete id="deleteAskView" parameterType="int">
+		delete from post where
+		post_no = #{post_no}
+	</delete>
+
+	<!-- 문의게시판 조회 -->
+	<select id="getAskBoardList" resultType="board">
+		SELECT * FROM post where
+		board_no = 300 order by board_re_ref desc
+	</select>
+
+	<!-- 문의게시판 조회 -->
+	<select id="getAskList" resultType="board">
+		SELECT
+		p1.post_no,
+		p1.up_post_no,
+		p1.writer_id,
+		p1.post_title,
+		p1.post_content,
+		p1.post_dt,
+		p1.board_re_ref,
+		0 AS level
+		FROM
+		post p1
+		WHERE
+		p1.BOARD_NO=300 and
+		p1.writer_id=#{writer}
+		UNION ALL
+		SELECT
+		p2.post_no,
+		p2.up_post_no,
+		p2.writer_id,
+		p2.post_title,
+		p2.post_content,
+		p2.post_dt,
+		p2.board_re_ref,
+		ph.level + 1
+		FROM
+		post p2
+		JOIN
+		(
+		SELECT
+		post_no,
+		up_post_no,
+		writer_id,
+		post_title,
+		post_content,
+		post_dt,
+		0 AS level
+		FROM
+		post s1
+		WHERE
+		s1.BOARD_NO=300 and
+		s1.writer_id=#{writer}
+		) ph ON p2.up_post_no = ph.post_no
+		ORDER BY
+		board_re_ref desc;
+	</select>
+</mapper>	

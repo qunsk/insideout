@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.InsideOut.dao.NoteDAO">
+
+	<!-- <insert id="sendNote" parameterType="com.example.InsideOut.model.Note"> 
+		insert into notes (note_no, message, snd_dt, rcv_dt, recv_id, send_id, user_note_no, 
+		mem_no, snd_rcv_cd) values (#{noteNo}, #{message}, #{snd_dt}, #{rcv_dt}, 
+		#{recvId}, #{sendId}, #{userNoteNo}, #{memNo}, #{sndRcvCd}) </insert> -->
+
+	<!-- note 테이블에 쪽지 삽입 -->
+	<insert id="sendNote"
+		parameterType="com.example.InsideOut.model.NoteBean">
+		INSERT INTO note (message, snd_dt, rcv_dt, recv_id, send_id, send_nm,
+		recv_nm)
+		VALUES (#{message}, sysdate(), sysdate(), #{recv_id, jdbcType=VARCHAR},
+		#{send_id}, #{send_nm}, #{recv_nm, jdbcType=VARCHAR} )
+	</insert>
+
+	<select id="getNoteno" resultType="int">
+		select max(note_no) from note
+	</select>
+
+	<!-- user_note 테이블에 사용자 쪽지 삽입 -->
+	<insert id="usersendNote"
+		parameterType="com.example.InsideOut.model.NoteBean">
+		INSERT INTO user_note (mem_no, note_no, snd_rcv_cd)
+		VALUES (#{send_id}, #{note_no}, 'N')
+	</insert>
+
+
+	<!-- 받은 쪽지 리스트 -->
+	<select id="getReceivedList"
+		parameterType="com.example.InsideOut.model.NoteBean"
+		resultType="com.example.InsideOut.model.NoteBean">
+		SELECT
+		t1.note_no,
+		t1.message,
+		t1.snd_dt,
+		t1.rcv_dt,
+		t1.recv_id,
+		t1.send_id,
+		IF(m1.mem_type = '0100', (SELECT student_name FROM student WHERE student_no =
+		t1.recv_id), (SELECT staff_name FROM staff WHERE staff_no =
+		t1.recv_id)) AS recv_nm,
+		IF(m1.mem_type = '0100', (SELECT student_name FROM student WHERE student_no =
+		t1.send_id), (SELECT staff_name FROM staff WHERE staff_no =
+		t1.send_id)) AS send_nm
+		FROM
+		note t1
+		LEFT JOIN member m1 ON (m1.username = t1.recv_id)
+		LEFT JOIN member m2 ON (m2.username = t1.send_id)
+		WHERE
+		t1.recv_id = #{recv_id}
+		ORDER BY
+		t1.note_no DESC
+	</select>
+
+	<!-- 보낸 쪽지 리스트 -->
+	<select id="getSentList"
+		parameterType="com.example.InsideOut.model.NoteBean"
+		resultType="com.example.InsideOut.model.NoteBean">
+		SELECT
+		t1.note_no,
+		t1.message,
+		t1.snd_dt,
+		t1.rcv_dt,
+		t1.recv_id,
+		t1.send_id,
+		IF(m1.mem_type = '0100', (SELECT student_name FROM student WHERE student_no =
+		t1.recv_id), (SELECT staff_name FROM staff WHERE staff_no =
+		t1.recv_id)) AS recv_nm,
+		IF(m1.mem_type = '0100', (SELECT student_name FROM student WHERE student_no =
+		t1.send_id), (SELECT staff_name FROM staff WHERE staff_no =
+		t1.send_id)) AS send_nm
+		FROM
+		note t1
+		LEFT JOIN member m1 ON (m1.username = t1.recv_id)
+		LEFT JOIN member m2 ON (m2.username = t1.send_id)
+		WHERE
+		t1.send_id = #{send_id}
+		ORDER BY
+		t1.note_no DESC
+	</select>
+
+	<select id="getReceivedCount" parameterType="String"
+		resultType="int">
+		select count(*) from note
+		where recv_id = #{recv_id}
+	</select>
+
+	<select id="getSentCount" parameterType="String"
+		resultType="int">
+		select count(*) from note
+		where send_id = #{send_id}
+	</select>
+
+	<select id="getUnreadCount" resultType="int">
+		select count(*) from note
+		where recv_id = #{memNo}
+		and snd_rcv_cd = 'N'
+	</select>
+
+	<select id="getNoteDetail"
+		resultType="com.example.InsideOut.model.NoteBean">
+		select * from note
+		where note_no = #{note_no}
+	</select>
+
+	<update id="markNoteAsRead">
+		update note
+		set snd_rcv_cd = 'N'
+		where note_no = #{note_no}
+	</update>
+
+	<!-- 삭제 -->
+	<delete id="deleteNoteById" parameterType="int">
+		delete from note
+		where note_no = #{note_no}
+		<!-- and send_id = #{send_id} -->
+	</delete>
+
+	<!-- 받은 쪽지 내용보기 -->
+	<select id="getReceivedNoteDetail" parameterType="int"
+		resultType="com.example.InsideOut.model.NoteBean">
+		select * from note where note_no=#{note_no}
+	</select>
+
+	<!-- 보낸 쪽지 내용보기 -->
+	<select id="getSentNoteDetail" parameterType="int"
+		resultType="com.example.InsideOut.model.NoteBean">
+		select * from note where note_no=#{note_no}
+	</select>
+
+	<!-- 답장 작성 -->
+	<insert id="insertReply"
+		parameterType="com.example.InsideOut.model.NoteBean">
+		INSERT INTO note (message, snd_dt, rcv_dt, recv_id, send_id)
+		VALUES (#{message}, sysdate(), sysdate(), #{recv_id}, #{send_id})
+	</insert>
+
+</mapper>

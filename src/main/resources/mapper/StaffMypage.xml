@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.InsideOut.dao.StaffMypageDao">
+
+	<!-- select * from COUNSEL_BOOKING -->
+	<!-- <select id="getBookingList" resultType="staff"> SELECT STUDENT_NO, 
+		COUNSEL_REQUEST_CONTENT, BOOKING_DT, BOOKING_TIME FROM COUNSEL_BOOKING </select> -->
+
+
+	<select id="staffBookingList" parameterType="String" resultType="staffpage">
+		select * from STUDENT s
+		join COUNSEL_BOOKING cb ON cb.STUDENT_NO = s.STUDENT_NO
+		join code c on cb.booking_time = c.cd
+		where cate = '5000' and cb.staff_no = #{staff_no}
+	</select>
+	
+	<update id="confirmUpdate" parameterType="staffpage">
+		update COUNSEL_BOOKING set confirm_Dt = #{booking_Dt}, confirm_Time = #{booking_Time} 
+		where booking_No = #{booking_No}		
+	</update>
+
+</mapper>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.InsideOut.dao.SurveyDao">
+	<select id="getQuestionList" resultType="surveyquestion">
+		select * from survey_question
+	</select>
+	
+	<insert id="insertMulti" parameterType="surveyanswer">
+		insert into survey_answer(question_no, answer_rating, answer_cate, answer_ord) 
+			values(#{question_no}, #{answer_rating}, '0100', #{question_no})
+		<selectKey keyProperty="answer_no" resultType="int" order="AFTER">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+	
+	<insert id="insertMultiResult" parameterType="surveyresult">
+		insert into survey_result values(#{student_no}, #{booking_no}, #{question_no}, #{answer_no}, null)
+	</insert>
+	
+	<insert id="insertSubj" parameterType="String">
+		insert into survey_answer(question_no, answer_rating, answer_cate, answer_ord) 
+			values(6, null, '0200', 6)
+		<selectKey keyProperty="answer_no" resultType="int" order="AFTER">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+	
+	<insert id="insertSubjResult" parameterType="surveyresult">
+		insert into survey_result values(#{student_no}, #{booking_no}, 6, #{answer_no} + 1, #{answer_subj})
+	</insert>
+	
+	<update id="updateSurvey">
+		update survey set survey_state = '0200', survey_dt = sysdate() where booking_no = #{booking_no}
+	</update>
+	
+	<insert id="insertStatic" parameterType="surveystatic">
+		insert into survey_static values(#{year}, #{student_no}, #{booking_no}, #{total}, #{answer_subj})
+	</insert>
+	
+	<select id="getSurveyList" resultType="survey">
+		<![CDATA[
+		select * from (select @rownum := @rownum + 1 as rnum, s1.* from survey s1,
+		(select @rownum := 0 ) s2 order by booking_no*1 desc) s2
+		where rnum >= ((#{page}-1) * 10 + 1)  and rnum <= (#{page} * 10) and student_no = #{student_no}
+		]]>
+	</select>
+	
+	<select id="getSurveyCount" parameterType="String" resultType="int">
+		select count(*) from survey where student_no = #{student_no}
+	</select>
+	
+	<select id="getStaticList" resultType="surveystatic">
+		<![CDATA[
+    	select ss.* from (
+        select *, row_number() over (order by booking_no*1 desc) as rnum
+        from survey_static) ss
+    	join counsel_booking cb on ss.booking_no = cb.booking_no
+    	where ss.rnum >= ((#{page}-1) * 10 + 1) and ss.rnum <= (#{page} * 10) and cb.staff_no = #{staff_no}
+    	]]>
+	</select>
+	
+	<select id="getStaticCount" parameterType="String" resultType="int">
+		select count(*) from survey_static ss join counsel_booking cb on ss.booking_no = cb.booking_no
+		where cb.staff_no = #{staff_no}
+	</select>
+	
+	<insert id="insertSurvey" parameterType="String">
+		insert into survey(student_no, booking_no, survey_state) values(#{student_no}, #{booking_no}, '0100')
+	</insert>
+</mapper>

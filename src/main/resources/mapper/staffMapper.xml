@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.InsideOut.dao.StaffUpdateDAO">
+
+    <select id="getStaffByMemNo" parameterType="String" resultType="staff">
+        SELECT * FROM staff WHERE staff_no = #{username}
+    </select>
+
+    <update id="updateStaff" parameterType="staff">
+        UPDATE staff
+        SET 
+
+        staff_name = #{staff_name},
+            staff_tel = #{staff_tel},
+            staff_email = #{staff_email}
+        WHERE staff_no  = #{staff_no}
+
+    </update>
+
+</mapper>
